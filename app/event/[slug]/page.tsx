@@ -1,0 +1,10 @@
+ "use client";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { configured, supabase } from "@/lib/supabase";
+type Entry={title:string;summary:string|null;content:string|null;category:string|null;cover_image:string|null;image_urls:string[]|null;event_date:string|null;start_time:string|null;location:string|null;registration_url:string|null};
+export default function Detail(){
+ const params=useParams();const slug=String(params.slug||"");const [item,setItem]=useState<Entry|null>(null);const [busy,setBusy]=useState(true);
+ useEffect(()=>{if(!configured){setBusy(false);return;}supabase.from("events").select("*").eq("slug",slug).eq("status","published").single().then(({data})=>{setItem(data);setBusy(false);});},[slug]);
+ return <main><header className="top"><a className="brand" href="/"><span className="brandmark">M</span><span>MEDIA HUB<small>HUTECH · COMMUNICATION & DESIGN</small></span></a><a className="adminLink" href="/">← Trang chủ</a></header><section className="section wrap">{busy?<p>Đang tải nội dung…</p>:!item?<div className="empty">Không tìm thấy sự kiện hoặc sự kiện chưa được xuất bản.</div>:<article className="detailArticle"><label>{item.category||"SỰ KIỆN"}</label><h1>{item.title}</h1><p className="detailSummary">{item.summary}</p><div className="detailMeta">▦ {item.event_date?new Date(item.event_date+"T00:00:00").toLocaleDateString("vi-VN"):"Đang cập nhật"}　·　{item.start_time||"Thời gian cập nhật"}　·　⌖ {item.location||"Địa điểm cập nhật"}</div>{item.cover_image&&<img className="detailCover" src={item.cover_image} alt={item.title}/>}<div className="detailContent">{(item.content||"").split("\\n").map((line,i)=><p key={i}>{line}</p>)}</div>{item.image_urls?.length?<div className="detailGallery">{item.image_urls.map((u,i)=><img key={i} src={u} alt={`Ảnh sự kiện ${i+1}`}/>)}</div>:null}{item.registration_url&&<a className="btn" href={item.registration_url} target="_blank" rel="noreferrer">Đăng ký tham gia ↗</a>}</article>}</section><footer><div className="wrap foot"><span>© MEDIA HUB · HUTECH</span><span>Khoa Truyền thông & Thiết kế</span></div></footer></main>;
+}
